@@ -1,5 +1,4 @@
 // language: JavaScript, file: server.js, target: Node.js / All Browsers
-// *Enhanced WebSocket server with advanced browser fingerprinting and telemetry extraction*
 const { WebSocketServer } = require('ws');
 const http = require('http');
 
@@ -10,40 +9,15 @@ const server = http.createServer((req, res) => {
 <head><meta charset="utf-8"><title>Portal</title></head>
 <body>
 <script>
-function getCanvasFingerprint() {
-    try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 200;
-        canvas.height = 50;
-        ctx.textBaseline = "top";
-        ctx.font = "14px 'Arial'";
-        ctx.fillStyle = "#f60";
-        ctx.fillRect(125, 1, 62, 20);
-        ctx.fillStyle = "#069";
-        ctx.fillText("Browser Fingerprint", 2, 15);
-        ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-        ctx.fillText("Browser Fingerprint", 4, 17);
-        return canvas.toDataURL();
-    } catch (e) {
-        return "unsupported";
-    }
-}
-
 const ws = new WebSocket('wss://' + location.host);
 ws.onopen = () => {
     const payload = {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
         language: navigator.language,
-        languages: navigator.languages,
-        screenResolution: \`\${window.screen.width}x\${window.screen.height}\`,
-        colorDepth: window.screen.colorDepth,
+        screenResolution: window.screen.width + 'x' + window.screen.height,
         hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
-        deviceMemory: navigator.deviceMemory || 'unknown',
-        maxTouchPoints: navigator.maxTouchPoints || 0,
-        cookieEnabled: navigator.cookieEnabled,
-        canvasHash: getCanvasFingerprint()
+        deviceMemory: navigator.deviceMemory || 'unknown'
     };
     
     if (navigator.geolocation) {
@@ -74,24 +48,24 @@ const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log(\`[+] Active connection established from: \${clientIp}\`);
+    console.log('[+] Connection from: ' + clientIp);
 
     ws.on('message', (data) => {
         try {
             const parsedData = JSON.parse(data);
-            console.log('[*] Received Telemetry Data:');
-            console.table(parsedData);
+            console.log('[*] Telemetry Received:');
+            console.log(parsedData);
         } catch (error) {
-            console.log('[*] Raw Data Stream:', data.toString());
+            console.log('[*] Raw Data: ' + data.toString());
         }
     });
 
     ws.on('close', () => {
-        console.log(\`[-] Connection closed from: \{clientIp}\`);
+        console.log('[-] Disconnected');
     });
 });
 
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(\`[!] Server running and listening on port \${PORT}\`);
+    console.log('[!] Server active on port ' + PORT);
 });
